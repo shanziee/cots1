@@ -9,27 +9,35 @@
     <!-- DataTables -->
     <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet">
 
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- CSRF -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
 </head>
 
-<body class="container mt-5">
+<body class="bg-light">
 
-<h2>CRUD Mahasiswa</h2>
+<div class="container mt-5">
+<div class="card shadow-lg p-4">
 
-<button class="btn btn-primary mb-3" onclick="tambah()">Tambah Data</button>
+    <h3 class="mb-4 text-center">🎓 CRUD Data Mahasiswa</h3>
 
-<table id="myTable" class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Nama</th>
-            <th>NIM</th>
-            <th>Jurusan</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-</table>
+    <button class="btn btn-primary mb-3" onclick="tambah()">+ Tambah Data</button>
+
+    <table id="myTable" class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Nama</th>
+                <th>NIM</th>
+                <th>Jurusan</th>
+                <th width="150">Aksi</th>
+            </tr>
+        </thead>
+    </table>
+
+</div>
+</div>
 
 <!-- MODAL -->
 <div class="modal fade" id="modalForm">
@@ -42,9 +50,15 @@
 
 <div class="modal-body">
     <input type="hidden" id="id">
-    <input type="text" id="nama" class="form-control mb-2" placeholder="Nama">
-    <input type="text" id="nim" class="form-control mb-2" placeholder="NIM">
-    <input type="text" id="jurusan" class="form-control" placeholder="Jurusan">
+
+    <label>Nama</label>
+    <input type="text" id="nama" class="form-control mb-2">
+
+    <label>NIM</label>
+    <input type="text" id="nim" class="form-control mb-2">
+
+    <label>Jurusan</label>
+    <input type="text" id="jurusan" class="form-control">
 </div>
 
 <div class="modal-footer">
@@ -69,13 +83,11 @@ let table;
 let save_method;
 let modal;
 
-// CSRF setup
 $.ajaxSetup({
     headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
     }
 });
-
 
 $(document).ready(function(){
 
@@ -116,6 +128,13 @@ function tambah(){
 }
 
 function simpan(){
+
+    // VALIDASI
+    if($('#nama').val() == '' || $('#nim').val() == '' || $('#jurusan').val() == ''){
+        Swal.fire("Error", "Semua field wajib diisi!", "warning");
+        return;
+    }
+
     let url = save_method == "add" ? "/store" : "/update/" + $('#id').val();
     let method = save_method == "add" ? "POST" : "PUT";
 
@@ -130,10 +149,8 @@ function simpan(){
         success: function(){
             modal.hide();
             table.ajax.reload();
-        },
-        error: function(err){
-            console.log(err);
-            alert("Terjadi error!");
+
+            Swal.fire("Berhasil!", "Data berhasil disimpan", "success");
         }
     });
 }
@@ -152,15 +169,24 @@ function edit(id){
 }
 
 function hapus(id){
-    if(confirm("Hapus data?")){
-        $.ajax({
-            url: "/delete/" + id,
-            type: "DELETE",
-            success: function(){
-                table.ajax.reload();
-            }
-        });
-    }
+    Swal.fire({
+        title: "Yakin?",
+        text: "Data akan dihapus!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Ya, hapus!"
+    }).then((result) => {
+        if(result.isConfirmed){
+            $.ajax({
+                url: "/delete/" + id,
+                type: "DELETE",
+                success: function(){
+                    table.ajax.reload();
+                    Swal.fire("Terhapus!", "Data berhasil dihapus", "success");
+                }
+            });
+        }
+    });
 }
 </script>
 
